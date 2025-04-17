@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Notas MEDUCA (1.0 - 5.0)</title>
+
+    <style>
+        /* --- CSS (sin cambios respecto al anterior) --- */
+        body {
+            font-family: sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px 0;
+        }
+
+        .calculator-container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.5em;
+        }
+
+        p {
+            color: #555;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #444;
+        }
+
+        .input-group input {
+            width: calc(100% - 22px);
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+        input[type=number] {
+          -moz-appearance: textfield;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #resultado {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            min-height: 50px;
+            text-align: left;
+        }
+
+        #resultado p {
+            margin: 5px 0;
+            font-weight: bold;
+        }
+
+        #resultado .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+         #resultado .nota-final {
+            font-size: 1.2em; /* Hacer la nota final un poco más grande */
+            color: #0056b3; /* Darle un color distintivo */
+            text-align: center; /* Centrar la nota final */
+            margin-bottom: 10px; /* Espacio debajo */
+        }
+         #resultado small {
+            font-weight: normal;
+            color: #6c757d;
+            display: block; /* Hacer que ocupe su propia línea */
+            text-align: center; /* Centrar el porcentaje */
+            font-size: 0.9em;
+        }
+
+
+        .explanation {
+            margin-top: 30px;
+            text-align: left;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+
+        .explanation h2 {
+            font-size: 1.1em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .explanation p {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .explanation code {
+            background-color: #f0f0f0;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: monospace;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="calculator-container">
+        <h1>Calculadora de Notas MEDUCA</h1>
+        <p>Convierte puntajes a la escala oficial de 1.0 a 5.0.</p>
+
+        <div class="input-group">
+            <label for="puntosObtenidos">Puntos Obtenidos:</label>
+            <input type="number" id="puntosObtenidos" placeholder="Ej: 7" min="0" step="any">
+        </div>
+
+        <div class="input-group">
+            <label for="puntosTotales">Puntos Totales Posibles:</label>
+            <input type="number" id="puntosTotales" placeholder="Ej: 10" min="0.01" step="any">
+        </div>
+
+        <button id="calcularBtn">Calcular Nota</button>
+
+        <div id="resultado">
+            <!-- Aquí se mostrará el resultado único -->
+            <p>Ingresa los puntos y presiona Calcular.</p>
+        </div>
+
+        <div class="explanation">
+            <h2>Explicación del Método:</h2>
+            <p><strong>Método Estándar (Lineal):</strong> Es la conversión matemática oficial según la escala 1.0 a 5.0. Se calcula usando la fórmula:</p>
+             <p><code>Nota = 1.0 + [(Puntos Obtenidos / Puntos Totales) * 4.0]</code></p>
+             <p><em>Ejemplo: 7 de 10 puntos = 1.0 + (0.7 * 4.0) = 1.0 + 2.8 = <strong>3.8</strong></em></p>
+        </div>
+    </div>
+
+    <script>
+        // --- JavaScript Modificado ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const puntosObtenidosInput = document.getElementById('puntosObtenidos');
+            const puntosTotalesInput = document.getElementById('puntosTotales');
+            const calcularBtn = document.getElementById('calcularBtn');
+            const resultadoDiv = document.getElementById('resultado');
+
+            function calcularNotas() {
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.classList.remove('error');
+
+                const obtenidosStr = puntosObtenidosInput.value.replace(',', '.');
+                const totalesStr = puntosTotalesInput.value.replace(',', '.');
+
+                const obtenidos = parseFloat(obtenidosStr);
+                const totales = parseFloat(totalesStr);
+
+                // --- Validación ---
+                if (obtenidosStr === '' || totalesStr === '') {
+                     resultadoDiv.innerHTML = '<p>Ingresa los puntos y presiona Calcular.</p>';
+                     return;
+                }
+                if (isNaN(obtenidos) || isNaN(totales)) {
+                    resultadoDiv.innerHTML = '<p class="error">Por favor, ingresa números válidos.</p>';
+                    resultadoDiv.classList.add('error');
+                    return;
+                }
+                if (totales <= 0) {
+                    resultadoDiv.innerHTML = '<p class="error">Puntos totales deben ser mayor a cero.</p>';
+                    resultadoDiv.classList.add('error');
+                    return;
+                }
+                if (obtenidos < 0) {
+                    resultadoDiv.innerHTML = '<p class="error">Puntos obtenidos no pueden ser negativos.</p>';
+                    resultadoDiv.classList.add('error');
+                    return;
+                }
+                // Opcional: Validar que obtenidos no sea mayor que totales
+                // if (obtenidos > totales) {
+                //     resultadoDiv.innerHTML = '<p class="error">Puntos obtenidos no pueden superar los totales.</p>';
+                //     resultadoDiv.classList.add('error');
+                //     return;
+                // }
+
+                // --- Cálculo (Solo Estándar Lineal) ---
+                const porcentaje = obtenidos / totales;
+                let notaLineal = 1.0 + (porcentaje * 4.0);
+                // Acotar la nota entre 1.0 y 5.0
+                notaLineal = Math.max(1.0, Math.min(5.0, notaLineal));
+
+                // --- Mostrar Resultado Único ---
+                const notaLinealFormateada = notaLineal.toFixed(1);
+                const porcentajeFormateado = (porcentaje * 100).toFixed(1);
+
+                resultadoDiv.innerHTML = `
+                    <p class="nota-final"><strong>Nota Oficial: ${notaLinealFormateada}</strong></p>
+                    <small><em>(Equivalente a ${porcentajeFormateado}%)</em></small>
+                `;
+            }
+
+            // Event Listeners
+            calcularBtn.addEventListener('click', calcularNotas);
+
+            puntosObtenidosInput.addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    calcularNotas();
+                }
+            });
+             puntosTotalesInput.addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                     event.preventDefault();
+                    calcularNotas();
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
